@@ -199,11 +199,13 @@ public:
     map<Potential,vector<double> > potPosteriors (set<Potential> ps);
 };
 
+inline
 double Evidence::defaultWeight (int l) {
     return l < 0 ? fEngine.fLogicVarToDefaultNegWeight[-l]:
            fEngine.fLogicVarToDefaultPosWeight[l];
 }
 
+inline
 void Evidence::setCurrentWeight (int l, double w) {
     if (l < 0) {
         fVarToCurrentNegWeight[-l] = w;
@@ -212,16 +214,19 @@ void Evidence::setCurrentWeight (int l, double w) {
     }
 }
 
+inline
 void Evidence::setCurrentWeightToDefault (int l) {
     setCurrentWeight (l, defaultWeight (l));
 }
 
+inline
 void Evidence::setCurrentWeightsToDefaults (const vector<int>& lits) {
     for (int l : lits) {
         setCurrentWeightToDefault (l);
     }
 }
 
+inline
 void Evidence::setCurrentWeights (double w, const vector<int>& lits) {
     for (int l : lits) {
         setCurrentWeight (l, w);
@@ -229,7 +234,7 @@ void Evidence::setCurrentWeights (double w, const vector<int>& lits) {
 }
 
 
-
+inline
 void Evidence::retractAll () {
     fVarToCurrentNegWeight.assign(fEngine.fLogicVarToDefaultNegWeight.begin(),
                                   fEngine.fLogicVarToDefaultNegWeight.end());
@@ -237,6 +242,7 @@ void Evidence::retractAll () {
                                   fEngine.fLogicVarToDefaultPosWeight.end());
 }
 
+inline
 Evidence::Evidence (OnlineEngine& engine) : fEngine(engine){
     fVarToCurrentNegWeight.resize(
         fEngine.fLogicVarToDefaultNegWeight.size());
@@ -245,12 +251,14 @@ Evidence::Evidence (OnlineEngine& engine) : fEngine(engine){
     retractAll ();
 }
 
+inline
 void Evidence::varCommit (Variable v, int u) {
     varSet (v, 0.0);
     setCurrentWeightToDefault (
         fEngine.fSrcVarToSrcValToIndicator[v]->at(u));
 }
 
+inline
 void Evidence::valCommit (Variable v, int u, bool allow) {
     int l = fEngine.fSrcVarToSrcValToIndicator[v]->at(u);
     if (allow) {
@@ -260,14 +268,17 @@ void Evidence::valCommit (Variable v, int u, bool allow) {
     }
 }
 
+inline
 void Evidence::varRetract (Variable v) {
     setCurrentWeightsToDefaults (*(fEngine.fSrcVarToSrcValToIndicator[v]));
 }
 
+inline
 void Evidence::varSet (Variable v, double w) {
     setCurrentWeights (w, *(fEngine.fSrcVarToSrcValToIndicator[v]));
 }
 
+inline
 void Evidence::parmCommit (Potential t, int p, double w) {
     int l = fEngine.fSrcPotToSrcPosToParameter[t]->at(p);
     if (p == 0) {
@@ -276,6 +287,7 @@ void Evidence::parmCommit (Potential t, int p, double w) {
     setCurrentWeight (l, w);
 }
 
+inline
 void Evidence::parmRetract (Potential t, int p) {
     int l = fEngine.fSrcPotToSrcPosToParameter[t]->at(p);
     if (p == 0) {
@@ -284,6 +296,7 @@ void Evidence::parmRetract (Potential t, int p) {
     setCurrentWeightToDefault (l);
 }
 
+inline
 vector<double> OnlineEngine::clone(vector<double> a) {
     vector<double> ans;
     ans.reserve(a.size());
@@ -291,6 +304,7 @@ vector<double> OnlineEngine::clone(vector<double> a) {
     return ans;
 }
 
+inline
 void OnlineEngine::upwardPass (Evidence ev) {
     vector<double>& negValues = ev.fVarToCurrentNegWeight;
     vector<double>& posValues = ev.fVarToCurrentPosWeight;
@@ -329,6 +343,7 @@ void OnlineEngine::upwardPass (Evidence ev) {
     }
 }
 
+inline
 void OnlineEngine::twoPasses (Evidence ev) {
 
     // Upward pass.
@@ -425,23 +440,27 @@ void OnlineEngine::twoPasses (Evidence ev) {
 
 }
 
+inline
 double OnlineEngine::computedValue (int n) {
     return fNodeToOneZero[n] ? 0 : fNodeToValue[n];
 }
 
+inline
 int OnlineEngine::first (int n) {
     return (n == 0) ? 0 : fNodeToLastEdge[n-1];
 }
 
+inline
 int OnlineEngine::rootNode () {
     return fNodeToType.size() - 1;
 }
 
+inline
 int OnlineEngine::numAcNodes () {
     return fNodeToType.size();
 }
 
-
+inline
 OnlineEngine::OnlineEngine (string acFilename, string lmFilename) {
 	ifstream ac_fs (acFilename, ifstream::in);
         ifstream lm_fs (lmFilename, ifstream::in);
@@ -450,6 +469,7 @@ OnlineEngine::OnlineEngine (string acFilename, string lmFilename) {
         lm_fs.close();
 }
 
+inline
 void OnlineEngine::initialize (istream& acReader, istream& lmReader) {
     readArithmeticCircuit(acReader);
     readLiteralMap(lmReader);
@@ -460,22 +480,27 @@ void OnlineEngine::initialize (istream& acReader, istream& lmReader) {
     fTwoPassesCompleted = false;
 }
 
+inline
 Variable OnlineEngine::varForName (string n) {
     return fNameToSrcVar[n];
 }
 
+inline
 Potential OnlineEngine::potForName (string n) {
     return fNameToSrcPot[n];
 }
 
+inline
 set<Variable> OnlineEngine::variables () {
     return fVariables;
 }
 
+inline
 set<Potential> OnlineEngine::potentials () {
     return fPotentials;
 }
 
+inline
 void OnlineEngine::assertEvidence (Evidence e, bool secondPass) {
     if (secondPass) {
         fAcVarToMostRecentNegWeight = clone (e.fVarToCurrentNegWeight);
@@ -490,6 +515,7 @@ void OnlineEngine::assertEvidence (Evidence e, bool secondPass) {
     fTwoPassesCompleted = secondPass;
 }
 
+inline
 double OnlineEngine::probOfEvidence () {
     if (!fUpwardPassCompleted) {
         throw runtime_error ("assertEvidence () must be called!");
@@ -498,6 +524,7 @@ double OnlineEngine::probOfEvidence () {
     return fTwoPassesCompleted ? computedValue (root) : fNodeToValue[root];
 }
 
+inline
 vector<double> OnlineEngine::varPartials (Variable v) {
     if (!fTwoPassesCompleted) {
         throw runtime_error (
@@ -515,6 +542,7 @@ vector<double> OnlineEngine::varPartials (Variable v) {
     return ans;
 }
 
+inline
 map<Variable,vector<double> > OnlineEngine::varPartials (set<Variable> vs) {
     map<Variable,vector<double> > ans;
     for (Variable v : vs) {
@@ -523,6 +551,7 @@ map<Variable,vector<double> > OnlineEngine::varPartials (set<Variable> vs) {
     return ans;
 }
 
+inline
 vector<double> OnlineEngine::varMarginals (Variable v) {
     if (!fTwoPassesCompleted) {
         throw runtime_error (
@@ -542,6 +571,7 @@ vector<double> OnlineEngine::varMarginals (Variable v) {
     return ans;
 }
 
+inline
 map<Variable,vector<double> > OnlineEngine::varMarginals (set<Variable> vs) {
     map<Variable,vector<double> > ans;
     for (Variable v : vs) {
@@ -550,6 +580,7 @@ map<Variable,vector<double> > OnlineEngine::varMarginals (set<Variable> vs) {
     return ans;
 }
 
+inline
 vector<double> OnlineEngine::varPosteriors (Variable v) {
     double pe = probOfEvidence ();
     vector<double> ans = varMarginals (v);
@@ -559,6 +590,7 @@ vector<double> OnlineEngine::varPosteriors (Variable v) {
     return ans;
 }
 
+inline
 map<Variable,vector<double> > OnlineEngine::varPosteriors (set<Variable> vs) {
     map<Variable,vector<double> > ans;
     for (Variable v : vs) {
@@ -567,6 +599,7 @@ map<Variable,vector<double> > OnlineEngine::varPosteriors (set<Variable> vs) {
     return ans;
 }
 
+inline
 vector<double> OnlineEngine::potPartials (Potential pot) {
     vector<int>& parms = *(fSrcPotToSrcPosToParameter[pot]);
     vector<double> ans(parms.size());
@@ -580,6 +613,7 @@ vector<double> OnlineEngine::potPartials (Potential pot) {
     return ans;
 }
 
+inline
 map<Potential,vector<double> > OnlineEngine::potPartials (
     set<Potential> ps) {
     map<Potential,vector<double> > ans;
@@ -589,6 +623,7 @@ map<Potential,vector<double> > OnlineEngine::potPartials (
     return ans;
 }
 
+inline
 vector<double> OnlineEngine::potMarginals (Potential p) {
     vector<int>& parms = *(fSrcPotToSrcPosToParameter[p]);
     vector<double> ans = potPartials (p);
@@ -603,6 +638,7 @@ vector<double> OnlineEngine::potMarginals (Potential p) {
     return ans;
 }
 
+inline
 map<Potential,vector<double> > OnlineEngine::potMarginals (set<Potential> ps) {
     map<Potential,vector<double> > ans;
     for (Potential p : ps) {
@@ -611,6 +647,7 @@ map<Potential,vector<double> > OnlineEngine::potMarginals (set<Potential> ps) {
     return ans;
 }
 
+inline
 vector<double> OnlineEngine::potPosteriors (Potential p) {
     vector<double> ans = potMarginals (p);
     double pe = probOfEvidence ();
@@ -622,6 +659,7 @@ vector<double> OnlineEngine::potPosteriors (Potential p) {
     return ans;
 }
 
+inline
 map<Potential,vector<double> > OnlineEngine::potPosteriors (
     set<Potential> ps) {
     map<Potential,vector<double> > ans;
@@ -634,6 +672,7 @@ map<Potential,vector<double> > OnlineEngine::potPosteriors (
 const string OnlineEngine::READ_DELIMITER  = "\\$";
 const string OnlineEngine::DELIMITER = "$";
 
+inline
 void OnlineEngine::readArithmeticCircuit(istream& r) {
 
     int numNodes = __INT_MAX__;
@@ -700,6 +739,7 @@ void OnlineEngine::readArithmeticCircuit(istream& r) {
 
 }
 
+inline
 void OnlineEngine::readLiteralMap(istream& r) {
     
     // Prepare to parse.
