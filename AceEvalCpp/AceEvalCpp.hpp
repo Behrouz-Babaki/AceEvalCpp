@@ -1,4 +1,5 @@
 #pragma once
+#pragma GCC diagnostic ignored "-Wsign-compare"
 
 #include <vector>
 #include <string>
@@ -148,8 +149,8 @@ public: // formerly protected:
     vector<int> fEdgeToTailNode;
     vector<int> fVarToNegLitNode;
     vector<int> fVarToPosLitNode;
-    static const string READ_DELIMITER;
-    static const string DELIMITER;
+    string READ_DELIMITER;
+    string DELIMITER;
     set<Variable> fVariables;
     set<Potential> fPotentials;
     map<string, Variable> fNameToSrcVar;
@@ -462,6 +463,8 @@ int OnlineEngine::numAcNodes () {
 
 inline
 OnlineEngine::OnlineEngine (string acFilename, string lmFilename) {
+	READ_DELIMITER  = "\\$";
+	DELIMITER = "$";  
 	ifstream ac_fs (acFilename, ifstream::in);
         ifstream lm_fs (lmFilename, ifstream::in);
         initialize (ac_fs, lm_fs);
@@ -669,8 +672,7 @@ map<Potential,vector<double> > OnlineEngine::potPosteriors (
     return ans;
 }
 
-const string OnlineEngine::READ_DELIMITER  = "\\$";
-const string OnlineEngine::DELIMITER = "$";
+
 
 inline
 void OnlineEngine::readArithmeticCircuit(istream& r) {
